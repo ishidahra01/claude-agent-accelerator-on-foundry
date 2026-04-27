@@ -1,0 +1,21 @@
+agent-framework-core==1.0.0rc3
+agent-framework-claude==1.0.0b260225
+agent-framework-azure-ai==1.0.0rc3
+azure-ai-agentserver-agentframework==1.0.0b17
+claude-agent-sdk==0.1.56
+python-dotenv
+
+# Azure Monitor / OpenTelemetry
+# Keep these pinned for azure-ai-agentserver-core==1.0.0b17 compatibility.
+azure-monitor-opentelemetry==1.8.4
+azure-monitor-opentelemetry-exporter==1.0.0b48
+opentelemetry-api==1.39.0
+opentelemetry-sdk==1.39.0
+opentelemetry-semantic-conventions==0.60b0
+opentelemetry-instrumentation==0.60b0
+opentelemetry-instrumentation-logging==0.60b0
+opentelemetry-exporter-otlp-proto-http==1.39.0
+opentelemetry-exporter-otlp-proto-grpc==1.39.0
+opentelemetry-exporter-otlp-proto-common==1.39.0
+opentelemetry-proto==1.39.0
+opentelemetry-util-http==0.60b0

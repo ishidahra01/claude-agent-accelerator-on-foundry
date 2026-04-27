@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+dist/
+build/
+.foundry-agent.json
+.foundry-agent-build.log
+.projects/
+
+# .NET build artifacts
+bin/
+obj/
+*.dll
+*.pdb
+*.exe
+.azure
+infra
