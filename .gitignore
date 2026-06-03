@@ -17,3 +17,4 @@ obj/
 *.exe
 .azure
 infra
+backend/work/

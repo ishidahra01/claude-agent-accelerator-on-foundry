@@ -30,6 +30,9 @@ from azure.ai.agentserver.agentframework.models.agent_framework_output_streaming
 )
 from agent_framework.observability import AgentTelemetryLayer
 
+from src.agent.runtime_contracts import analysis_output_instructions
+from src.agent.workspaces import ensure_workspace_root, workspace_instructions
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 LOGGER = logging.getLogger("azure_resource_analyzer")
@@ -54,6 +57,23 @@ BUILTIN_TOOLS = [
     "WebFetch",
     "TodoWrite",
 ]
+
+
+def _build_system_prompt_append(workspace_root: Path) -> str:
+    return "\n\n".join(
+        [
+            (
+                "You are hosted behind Microsoft Agent Framework and Azure AI Agent Server. "
+                "Respond in Japanese unless the user explicitly requests another language. "
+                "When the request is about Azure resource exports, first use the explore-agent for "
+                "large or unfamiliar inputs, then delegate to the security-analyzer, cost-optimizer, "
+                "and architecture-reviewer subagents when that improves the analysis. Return a "
+                "synthesized final report."
+            ),
+            workspace_instructions(workspace_root),
+            analysis_output_instructions(),
+        ]
+    )
 
 
 class ObservableClaudeAgent(AgentTelemetryLayer, ClaudeAgent):
@@ -196,19 +216,14 @@ def _validate_foundry_configuration() -> None:
 
 def _build_agent() -> ClaudeAgent:
     effort_level = _resolve_effort_level()
+    workspace_root = ensure_workspace_root(PROJECT_ROOT)
     default_options = {
         "cwd": str(PROJECT_ROOT),
         "setting_sources": ["project"],
         "system_prompt": {
             "type": "preset",
             "preset": "claude_code",
-            "append": (
-                "You are hosted behind Microsoft Agent Framework and Azure AI Agent Server. "
-                "Respond in Japanese unless the user explicitly requests another language. "
-                "When the request is about Azure resource exports, actively use the project skills and "
-                "delegate to the security-analyzer, cost-optimizer, and architecture-reviewer subagents "
-                "when that improves the analysis. Return a synthesized final report."
-            ),
+            "append": _build_system_prompt_append(workspace_root),
         },
         "allowed_tools": BUILTIN_TOOLS,
         "permission_mode": os.getenv("CLAUDE_PERMISSION_MODE", "dontAsk"),

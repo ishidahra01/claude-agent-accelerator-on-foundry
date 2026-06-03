@@ -1,0 +1,32 @@
+name: azure-waf-review-agent-accelerator
+version: 0.2.0
+description: Claude Agent SDK Azure Well-Architected Review Agent hosted on Microsoft Foundry.
+protocols:
+  responses: 1.0.0
+entrypoint: python main.py
+runtime:
+  kind: hosted-agent
+  framework: microsoft-agent-framework
+  inner_harness: claude-agent-sdk
+  outer_harness: microsoft-foundry-hosted-agent
+state:
+  filesystem_persistence: true
+  workspace_root_env: AGENT_WORKSPACE_ROOT
+identity:
+  preferred: managed-identity-or-entra-id
+  development_fallback: ANTHROPIC_FOUNDRY_API_KEY
+guardrails:
+  hosted_agent_content_safety: planned
+  acs_policy: planned-for-part-b
+observability:
+  application_insights_env: APPLICATIONINSIGHTS_CONNECTION_STRING
+  trace_bridge: microsoft-agent-framework-telemetry
+part_a_status:
+  claude_sdk_loop: implemented
+  subagents: implemented
+  skills: implemented
+  hosted_agent_responses_entry: implemented
+  filesystem_workspace_contract: implemented
+  fixed_analysis_output_contract: implemented
+  approval_checkpoint: planned
+  invocations_protocol: planned

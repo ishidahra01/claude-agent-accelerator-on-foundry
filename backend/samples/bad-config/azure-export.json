@@ -1,0 +1,73 @@
+{
+  "metadata": {
+    "scenario": "Part A demo input with intentionally weak Azure settings",
+    "exportedAt": "2026-06-03T00:00:00Z"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "name": "proddiagpublic001",
+      "location": "japaneast",
+      "sku": { "name": "Standard_LRS" },
+      "properties": {
+        "allowBlobPublicAccess": true,
+        "minimumTlsVersion": "TLS1_0",
+        "supportsHttpsTrafficOnly": false,
+        "publicNetworkAccess": "Enabled"
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "name": "nsg-open-admin",
+      "location": "japaneast",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "Allow-RDP-Internet",
+            "properties": {
+              "access": "Allow",
+              "direction": "Inbound",
+              "protocol": "Tcp",
+              "sourceAddressPrefix": "Internet",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "3389",
+              "priority": 100
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "dev-web-alwayson-01",
+      "location": "japaneast",
+      "sku": { "name": "Standard_D8s_v5" },
+      "tags": { "environment": "dev", "owner": "demo" },
+      "properties": {
+        "availabilitySet": null,
+        "zones": [],
+        "diagnosticsProfile": { "bootDiagnostics": { "enabled": false } }
+      }
+    },
+    {
+      "type": "Microsoft.Sql/servers/databases",
+      "name": "prod-sql-01/appdb",
+      "location": "japaneast",
+      "sku": { "name": "GP_Gen5_8", "tier": "GeneralPurpose", "capacity": 8 },
+      "properties": {
+        "zoneRedundant": false,
+        "backupStorageRedundancy": "Local",
+        "readScale": "Disabled"
+      }
+    },
+    {
+      "type": "Microsoft.Insights/diagnosticSettings",
+      "name": "missing-central-logs",
+      "properties": {
+        "logs": [],
+        "metrics": []
+      }
+    }
+  ]
+}

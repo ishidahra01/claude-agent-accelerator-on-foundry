@@ -36,4 +36,7 @@ template:
         value: dontAsk
       - name: CLAUDE_CODE_USE_POWERSHELL_TOOL
         value: "1"
+      - name: AGENT_WORKSPACE_ROOT
+        value: work
+
 
