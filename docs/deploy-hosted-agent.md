@@ -56,7 +56,9 @@ ANTHROPIC_FOUNDRY_API_KEY=<your-foundry-anthropic-api-key>
 
 Other values in this `.env` file (project endpoint, App Insights connection string, ACR endpoint, etc.) are populated automatically by `azd provision`.
 
-The manifest also sets `AGENT_WORKSPACE_ROOT=work`. The backend creates this folder at startup and tells the agent to place normalized exports, intermediate summaries, and generated reports there. The folder is treated as the Hosted Agent filesystem persistence boundary for the Part A demo.
+The manifest also sets `CLAUDE_WORKSPACE_ROOT=$HOME/work`. Hosted Agents persist session state under `$HOME` and `/files`, so this keeps normalized exports, intermediate summaries, and generated reports in the same filesystem surface that the Foundry Portal Files view exposes. Local `.env` files can still use `CLAUDE_WORKSPACE_ROOT=work`, which resolves under the backend project directory.
+
+Custom environment variables in `agent.yaml` must not use the `AGENT_` or `FOUNDRY_` prefixes. Those prefixes are reserved by the Hosted Agent container image specification, and Foundry rejects deployments that try to set them.
 
 For production hardening, move Azure resource access toward Entra ID, Managed Identity, or OBO. The current API key is only the development fallback for Claude-on-Foundry model access.
 
@@ -91,7 +93,7 @@ For the main Hosted Agent acceptance test, pass the Azure export JSON in the Por
 ## Runtime Notes
 
 - `backend/main.py` keeps the process working directory at `backend/` so Claude Code project settings, `.claude` agents, and Skills remain discoverable.
-- `AGENT_WORKSPACE_ROOT` controls where the agent should write intermediate artifacts. The default is `backend/work/`, which is ignored by Git.
+- `CLAUDE_WORKSPACE_ROOT` controls where the agent should write intermediate artifacts. Local `work` resolves under the backend project directory; hosted deployments should use `$HOME/work` so artifacts are session-persisted and visible under the portal's HOME file tree.
 - `APPINSIGHTS_CONNECTION_STRING` or `AZURE_MONITOR_CONNECTION_STRING` is normalized to `APPLICATIONINSIGHTS_CONNECTION_STRING` so the telemetry layer can export consistently.
 - `backend/.foundry/agent-metadata.yaml` is a design metadata file. The deployment source of truth for `azd ai agent init` remains `backend/agent.yaml`.
 

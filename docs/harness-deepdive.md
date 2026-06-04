@@ -137,7 +137,7 @@ This contract matters even before Part B exists. It makes demo output easier to 
 
 ## Workspace and Filesystem Contract
 
-`backend/src/agent/workspaces.py` resolves and creates the workspace root. By default it is `backend/work/`, controlled by `AGENT_WORKSPACE_ROOT`.
+`backend/src/agent/workspaces.py` resolves and creates the workspace root, controlled by `CLAUDE_WORKSPACE_ROOT`. For local development, `work` resolves under `backend/`. For Hosted Agent deployment, the manifest sets `CLAUDE_WORKSPACE_ROOT=$HOME/work` so generated artifacts land in the session-persisted `$HOME` filesystem that appears in the Foundry Portal Files view.
 
 The workspace is for:
 
@@ -153,7 +153,7 @@ The workspace is not for:
 - Secrets.
 - Long-lived customer data that should be stored in a governed system.
 
-The default workspace is ignored by Git. This lets a demo show filesystem persistence without accidentally committing generated files.
+The local default workspace is ignored by Git. In Hosted Agent sessions, files under `$HOME/work` are session-scoped and can persist across turns and idle resume.
 
 ## The Runtime Entry Point
 
@@ -193,7 +193,7 @@ The server defaults to `http://localhost:8088/responses`.
 | `CLAUDE_EFFORT` | No | Effort level: `low`, `medium`, `high`, `max`, or `auto`. Defaults to `high`. |
 | `CLAUDE_PERMISSION_MODE` | No | Claude tool permission mode. Defaults to `dontAsk`. |
 | `CLAUDE_CODE_USE_POWERSHELL_TOOL` | No | Uses PowerShell-oriented shell behavior on Windows. Defaults to `1`. |
-| `AGENT_WORKSPACE_ROOT` | No | Workspace root for artifacts. Defaults to `work`. |
+| `CLAUDE_WORKSPACE_ROOT` | No | Workspace root for artifacts. Local examples use `work`; Hosted Agent manifests use `$HOME/work` so files are under the session-persisted home directory. |
 | `PORT` | No | Local HTTP port. Defaults to `8088`. |
 | `APPINSIGHTS_CONNECTION_STRING` | No | App Insights export connection string. |
 | `AZURE_MONITOR_CONNECTION_STRING` | No | Alternative connection string name normalized at startup. |
@@ -222,7 +222,7 @@ ANTHROPIC_FOUNDRY_BASE_URL=https://<resource>.services.ai.azure.com/anthropic
 ANTHROPIC_FOUNDRY_API_KEY=<your-key>
 ANTHROPIC_DEFAULT_SONNET_MODEL=<deployment-name>
 CLAUDE_MODEL=sonnet
-AGENT_WORKSPACE_ROOT=work
+CLAUDE_WORKSPACE_ROOT=work
 ```
 
 Run static checks that do not require a live Foundry call:
@@ -319,7 +319,7 @@ A strong Part A demo shows the harness behavior, not only the final answer.
 | Exploration | `explore-agent` gives the Main Agent a compact inventory before specialist review. |
 | Specialist review | Security, cost, and architecture concerns stay in separate contexts. |
 | Synthesis | The Main Agent merges specialist output into the fixed schema. |
-| Workspace | Intermediate and generated artifacts belong under `AGENT_WORKSPACE_ROOT`. |
+| Workspace | Intermediate and generated artifacts belong under `CLAUDE_WORKSPACE_ROOT`. |
 | Telemetry | `ObservableClaudeAgent` is ready for MAF telemetry export when App Insights is configured. |
 
 ## Deploying as a Hosted Agent
@@ -340,7 +340,7 @@ The manifest `backend/agent.yaml` declares:
 - Responses protocol support.
 - Foundry and Claude environment variables.
 - Model deployment pins.
-- `AGENT_WORKSPACE_ROOT=work`.
+- `CLAUDE_WORKSPACE_ROOT=$HOME/work` for Hosted Agent session-persisted files.
 
 The metadata file `backend/.foundry/agent-metadata.yaml` is not the deployment source of truth. It records design intent and implementation status for reviewers.
 
@@ -369,7 +369,7 @@ The metadata file `backend/.foundry/agent-metadata.yaml` is not the deployment s
 | Model calls use the wrong deployment | Model pins are missing or mismatched. | Check `ANTHROPIC_DEFAULT_SONNET_MODEL` and related model variables. |
 | SubAgents are not found | Process working directory is wrong or `.claude` files are missing from the container. | Confirm `cwd` is `backend/` and Docker copies the full backend directory. |
 | No telemetry appears | App Insights connection string is missing. | Set `APPINSIGHTS_CONNECTION_STRING` or `AZURE_MONITOR_CONNECTION_STRING`. |
-| Generated files are hard to find | Workspace root is different from expected. | Check `AGENT_WORKSPACE_ROOT`; relative paths resolve under `backend/`. |
+| Generated files are hard to find | Workspace root is different from expected. | Check `CLAUDE_WORKSPACE_ROOT`; local relative paths resolve under `backend/`, while Hosted Agent files should be under `$HOME/work`. |
 | Agent gives generic recommendations | Input lacks evidence or prompt did not point at the sample file. | Use the bad-config prompt and ask for resource-specific findings. |
 | Local request appears to return only a preface | The responses payload can include multiple output messages. | Inspect all `response.output[*].content[*].text` values or read the last text item. |
 | Readiness fails immediately after startup | Azure credential and project connection discovery is still running. | Retry `/readiness`; local startup often takes 30 to 60 seconds. |
@@ -386,7 +386,7 @@ Good Part A extensions:
 - Add request preprocessing in a runtime adapter while preserving the Claude Agent SDK loop.
 - Add a MAF workflow sample that treats the Claude agent as one node.
 - Add a Hosted Agent invocation path for batch-style input.
-- Add better workspace artifact conventions under `AGENT_WORKSPACE_ROOT`.
+- Add better workspace artifact conventions under `CLAUDE_WORKSPACE_ROOT`.
 
 Avoid these moves unless there is a strong reason:
 

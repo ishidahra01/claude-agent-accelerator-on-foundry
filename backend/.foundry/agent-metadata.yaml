@@ -11,7 +11,7 @@ runtime:
   outer_harness: microsoft-foundry-hosted-agent
 state:
   filesystem_persistence: true
-  workspace_root_env: AGENT_WORKSPACE_ROOT
+  workspace_root_env: CLAUDE_WORKSPACE_ROOT
 identity:
   preferred: managed-identity-or-entra-id
   development_fallback: ANTHROPIC_FOUNDRY_API_KEY

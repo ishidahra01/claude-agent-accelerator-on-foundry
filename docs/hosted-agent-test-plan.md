@@ -168,7 +168,7 @@ Use this matrix to decide whether the implemented harness is functioning, not ju
 | Built-in tools | Smoke prompt reads the file without asking for permission | File-specific findings appear, not generic Azure advice |
 | SubAgent routing | Ask for `explore-agent` inventory | Provider/type counts include Storage, NSG, VM, SQL DB, DiagnosticSettings |
 | Specialist intent | Full review prompt produces security, cost, and architecture findings | Findings map to concrete resources and all three dimensions are populated |
-| Workspace contract | Ask the agent to write a short report under `work/` | Generated artifact path is under `AGENT_WORKSPACE_ROOT` |
+| Workspace contract | Ask the agent to write a short report under `CLAUDE_WORKSPACE_ROOT` | Generated artifact path is under `$HOME/work` and appears under HOME in the Portal Files view |
 | Telemetry | Inspect Foundry/App Insights traces after a request | Hosted request, agent run, and model/tool spans or events are visible |
 | Output contract | Parse the final text as JSON after stripping Markdown fences if present | Required top-level keys exist and arrays contain required fields |
 

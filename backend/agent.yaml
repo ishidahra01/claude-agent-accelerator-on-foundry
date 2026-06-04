@@ -14,8 +14,16 @@ template:
         value: ${APPLICATIONINSIGHTS_CONNECTION_STRING}
       - name: ENABLE_INSTRUMENTATION
         value: "true"
+      - name: ENABLE_SENSITIVE_DATA
+        value: "true"
       - name: OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT
         value: "true"
+      - name: OTEL_SEMCONV_STABILITY_OPT_IN
+        value: gen_ai_latest_experimental
+      - name: AZURE_EXPERIMENTAL_ENABLE_GENAI_TRACING
+        value: "true"
+      - name: CLAUDE_HOSTED_AGENT_NAME
+        value: my-claude-agent
       - name: ANTHROPIC_FOUNDRY_BASE_URL
         value: https://foundry-hishida.services.ai.azure.com/anthropic
       - name: ANTHROPIC_FOUNDRY_API_KEY
@@ -36,7 +44,7 @@ template:
         value: dontAsk
       - name: CLAUDE_CODE_USE_POWERSHELL_TOOL
         value: "1"
-      - name: AGENT_WORKSPACE_ROOT
-        value: work
+      - name: CLAUDE_WORKSPACE_ROOT
+        value: $HOME/work
 
 

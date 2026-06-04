@@ -100,8 +100,10 @@ ANTHROPIC_FOUNDRY_BASE_URL=https://<resource>.services.ai.azure.com/anthropic
 ANTHROPIC_FOUNDRY_API_KEY=<your-key>
 ANTHROPIC_DEFAULT_SONNET_MODEL=<deployment-name>
 CLAUDE_MODEL=sonnet
-AGENT_WORKSPACE_ROOT=work
+CLAUDE_WORKSPACE_ROOT=work
 ```
+
+For Hosted Agent deployment, the manifest sets `CLAUDE_WORKSPACE_ROOT=$HOME/work` so generated files are written under the session-persisted HOME filesystem that appears in the Foundry Portal Files view.
 
 Start the local responses server:
 

@@ -8,9 +8,10 @@ DEFAULT_WORKSPACE_ROOT_NAME = "work"
 
 
 def resolve_workspace_root(project_root: Path) -> Path:
-    configured = os.getenv("AGENT_WORKSPACE_ROOT")
+    configured = os.getenv("CLAUDE_WORKSPACE_ROOT")
     if configured:
-        path = Path(configured)
+        expanded = os.path.expandvars(configured)
+        path = Path(expanded).expanduser()
         return path if path.is_absolute() else project_root / path
 
     return project_root / DEFAULT_WORKSPACE_ROOT_NAME

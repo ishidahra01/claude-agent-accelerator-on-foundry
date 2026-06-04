@@ -1,34 +1,14 @@
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 from pathlib import Path
 
 from dotenv import load_dotenv
 
-import agent_framework as agent_framework_module
-
 from agent_framework_claude import ClaudeAgent
-
-
-if not hasattr(agent_framework_module, "BaseContextProvider") and hasattr(agent_framework_module, "ContextProvider"):
-    agent_framework_module.BaseContextProvider = agent_framework_module.ContextProvider
-if not hasattr(agent_framework_module, "ContextProvider") and hasattr(agent_framework_module, "BaseContextProvider"):
-    agent_framework_module.ContextProvider = agent_framework_module.BaseContextProvider
-if not hasattr(agent_framework_module, "BaseHistoryProvider") and hasattr(agent_framework_module, "HistoryProvider"):
-    agent_framework_module.BaseHistoryProvider = agent_framework_module.HistoryProvider
-if not hasattr(agent_framework_module, "HistoryProvider") and hasattr(agent_framework_module, "BaseHistoryProvider"):
-    agent_framework_module.HistoryProvider = agent_framework_module.BaseHistoryProvider
-
-from azure.ai.agentserver.agentframework import from_agent_framework
-from azure.ai.agentserver.agentframework.persistence import InMemoryAgentSessionRepository
-from azure.ai.agentserver.core.logger import request_context
-from azure.ai.agentserver.core.models.projects import AgentReference
-from azure.ai.agentserver.core.server.base import AgentRunContextMiddleware
-from azure.ai.agentserver.agentframework.models.agent_framework_output_streaming_converter import (
-    AgentFrameworkOutputStreamingConverter,
-)
-from agent_framework.observability import AgentTelemetryLayer
+from agent_framework_foundry_hosting import ResponsesHostServer
 
 from src.agent.runtime_contracts import analysis_output_instructions
 from src.agent.workspaces import ensure_workspace_root, workspace_instructions
@@ -76,10 +56,6 @@ def _build_system_prompt_append(workspace_root: Path) -> str:
     )
 
 
-class ObservableClaudeAgent(AgentTelemetryLayer, ClaudeAgent):
-    pass
-
-
 def _configure_logging() -> None:
     logging.basicConfig(
         level=os.getenv("LOG_LEVEL", "INFO").upper(),
@@ -96,37 +72,12 @@ def _configure_observability_environment() -> None:
         os.environ["APPLICATIONINSIGHTS_CONNECTION_STRING"] = connection_string
 
 
-def _patch_foundry_agent_identity(agent_name: str = FOUNDRY_AGENT_NAME) -> None:
-    if getattr(AgentRunContextMiddleware, "_foundry_trace_identity_patched", False):
-        return
+def _resolve_foundry_agent_name() -> str:
+    return os.getenv("FOUNDRY_AGENT_NAME") or os.getenv("CLAUDE_HOSTED_AGENT_NAME") or FOUNDRY_AGENT_NAME
 
-    original_set_run_context = AgentRunContextMiddleware.set_run_context_to_context_var
-    original_build_created_by = AgentFrameworkOutputStreamingConverter._build_created_by
 
-    def ensure_agent_reference(run_context: object) -> None:
-        request = getattr(run_context, "request", None)
-        if request is None or request.get("agent"):
-            return
-        request["agent"] = AgentReference(name=agent_name, version="")
-
-    def set_run_context_with_agent_identity(self: AgentRunContextMiddleware, run_context: object) -> None:
-        ensure_agent_reference(run_context)
-        original_set_run_context(self, run_context)
-        ctx = request_context.get() or {}
-        ctx["azure.ai.agentserver.agent_name"] = agent_name
-        ctx["gen_ai.agent.name"] = ctx.get("gen_ai.agent.name") or agent_name
-        ctx["gen_ai.agent.id"] = ctx.get("gen_ai.agent.id") or agent_name
-        request_context.set(ctx)
-
-    def build_created_by_with_agent_identity(
-        self: AgentFrameworkOutputStreamingConverter,
-        author_name: str,
-    ) -> dict:
-        return original_build_created_by(self, author_name or agent_name)
-
-    AgentRunContextMiddleware.set_run_context_to_context_var = set_run_context_with_agent_identity
-    AgentFrameworkOutputStreamingConverter._build_created_by = build_created_by_with_agent_identity
-    AgentRunContextMiddleware._foundry_trace_identity_patched = True
+def _resolve_foundry_agent_version() -> str:
+    return os.getenv("FOUNDRY_AGENT_VERSION") or os.getenv("CLAUDE_HOSTED_AGENT_VERSION", "")
 
 
 def _resolve_port(default: int = DEFAULT_PORT) -> int:
@@ -233,27 +184,29 @@ def _build_agent() -> ClaudeAgent:
         "env": _build_claude_process_env(),
     }
 
-    return ObservableClaudeAgent(
-        name="azure-resource-analyzer",
+    return ClaudeAgent(
+        id=f"{_resolve_foundry_agent_name()}:{_resolve_foundry_agent_version()}"
+        if _resolve_foundry_agent_version()
+        else _resolve_foundry_agent_name(),
+        name=_resolve_foundry_agent_name(),
         description="Claude Agent SDK based Azure resource analyzer hosted through Microsoft Agent Framework.",
         tools=BUILTIN_TOOLS,
         default_options=default_options,
     )
 
 
-def main() -> None:
+async def main() -> None:
     load_dotenv(override=False)
     _configure_observability_environment()
     _configure_logging()
     _validate_foundry_configuration()
 
-    port = _resolve_port()
     agent = _build_agent()
-    _patch_foundry_agent_identity()
 
-    LOGGER.info("Starting azure-resource-analyzer on http://localhost:%s/responses", port)
-    from_agent_framework(agent, session_repository=InMemoryAgentSessionRepository()).run(port=port)
+    LOGGER.info("Starting azure-resource-analyzer with agent id %s", agent.id)
+    server = ResponsesHostServer(agent)
+    await server.run_async()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

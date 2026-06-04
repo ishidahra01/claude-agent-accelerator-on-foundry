@@ -29,7 +29,7 @@ User / client
   -> stable analysis output contract
 ```
 
-The agent keeps `.claude` definitions, source code, and demo samples under `backend/` so the hosted container has a self-contained project directory. Generated analysis artifacts are directed to `backend/work/` by default through `AGENT_WORKSPACE_ROOT`; that folder is ignored by Git.
+The agent keeps `.claude` definitions, source code, and demo samples under `backend/` so the hosted container has a self-contained project directory. Local generated artifacts can use `backend/work/`, while Hosted Agent deployment sets `CLAUDE_WORKSPACE_ROOT=$HOME/work` so generated files live in the session-persisted home filesystem.
 
 ## Stable Output Contract
 
@@ -54,7 +54,7 @@ This contract is not just presentation. Part B will use it as the shared input f
 | SubAgent definitions | Implemented | Explore, security, cost, and architecture reviewers live under `backend/.claude/agents/`. |
 | Skills | Implemented | Security, cost, and WAF guidance live under `backend/.claude/skills/`. |
 | Responses protocol entry | Implemented | `backend/agent.yaml` declares the hosted responses protocol. |
-| Filesystem workspace contract | Implemented | `AGENT_WORKSPACE_ROOT` defaults to `work`. |
+| Filesystem workspace contract | Implemented | Local `CLAUDE_WORKSPACE_ROOT=work`; Hosted Agent manifest uses `$HOME/work`. |
 | Fixed analysis output schema | Implemented | `backend/src/agent/runtime_contracts.py` centralizes the contract. |
 | Approval checkpoint | Planned | Part A design includes it; Part B ACS will provide the policy layer. |
 | Invocations protocol | Planned | Useful for batch JSON-in / JSON-out workflows after the responses path is stable. |
