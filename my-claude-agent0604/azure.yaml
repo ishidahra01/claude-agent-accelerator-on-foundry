@@ -2,7 +2,7 @@
 
 requiredVersions:
     extensions:
-        azure.ai.agents: '>=0.1.0-preview'
+        azure.ai.agents: '>=0.1.40-preview'
 name: ai-foundry-starter-basic
 services:
     my-claude-agent0604:

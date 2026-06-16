@@ -162,7 +162,7 @@ The local default workspace is ignored by Git. In Hosted Agent sessions, files u
 1. Loads environment variables with `python-dotenv`.
 2. Normalizes App Insights connection string environment variables.
 3. Validates Claude-on-Foundry configuration.
-4. Builds an `ObservableClaudeAgent` with Claude Agent SDK options.
+4. Builds a telemetry-enabled `ClaudeAgent` with Claude Agent SDK options.
 5. Exposes that agent through `from_agent_framework(...).run(port=port)`.
 
 The important implementation details are:
@@ -172,7 +172,7 @@ The important implementation details are:
 - `setting_sources` is set to `project` so project-level Claude settings apply.
 - `allowed_tools` centralizes the built-in tools that the Main Agent can use.
 - `permission_mode` defaults to `dontAsk` for hosted execution.
-- `ObservableClaudeAgent` mixes `AgentTelemetryLayer` into `ClaudeAgent`.
+- `ClaudeAgent` includes Microsoft Agent Framework telemetry support through `AgentTelemetryLayer`.
 - `_patch_foundry_agent_identity()` fills trace identity fields when the request does not provide an agent reference.
 
 The server defaults to `http://localhost:8088/responses`.
@@ -320,19 +320,22 @@ A strong Part A demo shows the harness behavior, not only the final answer.
 | Specialist review | Security, cost, and architecture concerns stay in separate contexts. |
 | Synthesis | The Main Agent merges specialist output into the fixed schema. |
 | Workspace | Intermediate and generated artifacts belong under `CLAUDE_WORKSPACE_ROOT`. |
-| Telemetry | `ObservableClaudeAgent` is ready for MAF telemetry export when App Insights is configured. |
+| Telemetry | `ClaudeAgent` and the Part B tracing helper are ready for MAF telemetry export when App Insights is configured. |
 
 ## Deploying as a Hosted Agent
 
 Deployment is covered in [deploy-hosted-agent.md](deploy-hosted-agent.md). The short version is:
 
 ```powershell
+# If missing: azd ext install azure.ai.agents
 azd ext upgrade azure.ai.agents
 azd auth login
 azd ai agent init -m ..\backend\agent.yaml
 azd provision
 azd deploy
 ```
+
+Use `azure.ai.agents` `0.1.40-preview` or later when continuing into the Agent Optimizer B4 flow.
 
 The manifest `backend/agent.yaml` declares:
 
@@ -402,7 +405,7 @@ Part A intentionally leaves clean attachment points for Part B.
 
 | Part B Need | Part A Attachment Point |
 | --- | --- |
-| Tracing | `ObservableClaudeAgent`, MAF telemetry, future hook bridge. |
+| Tracing | `ClaudeAgent`, MAF telemetry, and `backend/src/agent/observability/tracing.py`. |
 | Evaluation | Stable output contract from `runtime_contracts.py`. |
 | Control | Tool permissions today, ACS or middleware checkpoint later. |
 | ROI | `summary`, `cost[].estimatedSavings`, execution duration, and token data later. |

@@ -1,0 +1,5 @@
+# Optional dependencies for local and cloud evaluation workflows.
+-r backend/requirements.txt
+PyYAML>=6.0.2,<7
+azure-ai-projects>=2.2.0
+azure-identity>=1.25.0

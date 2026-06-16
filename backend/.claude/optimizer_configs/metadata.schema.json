@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agent Optimizer Metadata",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "instruction_file": {
+      "type": "string"
+    },
+    "temperature": {
+      "type": "number"
+    },
+    "model": {
+      "type": "string"
+    },
+    "skill_dir": {
+      "type": "string"
+    },
+    "tool_file": {
+      "type": "string"
+    }
+  },
+  "required": ["instruction_file"]
+}

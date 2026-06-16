@@ -10,8 +10,6 @@ template:
         value: "1"
       - name: AZURE_AI_PROJECT_ENDPOINT
         value: ${AZURE_AI_PROJECT_ENDPOINT}
-      - name: APPINSIGHTS_CONNECTION_STRING
-        value: ${APPLICATIONINSIGHTS_CONNECTION_STRING}
       - name: ENABLE_INSTRUMENTATION
         value: "true"
       - name: ENABLE_SENSITIVE_DATA
@@ -25,7 +23,7 @@ template:
       - name: CLAUDE_HOSTED_AGENT_NAME
         value: my-claude-agent
       - name: ANTHROPIC_FOUNDRY_BASE_URL
-        value: https://foundry-hishida.services.ai.azure.com/anthropic
+        value: ${ANTHROPIC_FOUNDRY_BASE_URL}
       - name: ANTHROPIC_FOUNDRY_API_KEY
         value: ${ANTHROPIC_FOUNDRY_API_KEY}
       - name: ANTHROPIC_DEFAULT_OPUS_MODEL

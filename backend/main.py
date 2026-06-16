@@ -10,11 +10,18 @@ from dotenv import load_dotenv
 from agent_framework_claude import ClaudeAgent
 from agent_framework_foundry_hosting import ResponsesHostServer
 
+from src.agent.observability.tracing import (
+    configure_agent_framework_observability,
+    create_observability,
+    trace_server_startup,
+)
+from src.agent.optimization import AgentOptimizerConfig, load_agent_optimizer_config
 from src.agent.runtime_contracts import analysis_output_instructions
 from src.agent.workspaces import ensure_workspace_root, workspace_instructions
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
+OPTIMIZER_CONFIG_DIR = PROJECT_ROOT / ".claude" / "optimizer_configs"
 LOGGER = logging.getLogger("azure_resource_analyzer")
 DEFAULT_PORT = 8088
 FOUNDRY_AGENT_NAME = "my-claude-agent"
@@ -39,17 +46,22 @@ BUILTIN_TOOLS = [
 ]
 
 
-def _build_system_prompt_append(workspace_root: Path) -> str:
+def _default_agent_instructions() -> str:
+    return (
+        "You are hosted behind Microsoft Agent Framework and Azure AI Agent Server. "
+        "Respond in Japanese unless the user explicitly requests another language. "
+        "When the request is about Azure resource exports, first use the explore-agent for "
+        "large or unfamiliar inputs, then delegate to the security-analyzer, cost-optimizer, "
+        "and architecture-reviewer subagents when that improves the analysis. Return a "
+        "synthesized final report."
+    )
+
+
+def _build_system_prompt_append(workspace_root: Path, optimizer_config: AgentOptimizerConfig) -> str:
+    agent_instructions = optimizer_config.instructions or _default_agent_instructions()
     return "\n\n".join(
         [
-            (
-                "You are hosted behind Microsoft Agent Framework and Azure AI Agent Server. "
-                "Respond in Japanese unless the user explicitly requests another language. "
-                "When the request is about Azure resource exports, first use the explore-agent for "
-                "large or unfamiliar inputs, then delegate to the security-analyzer, cost-optimizer, "
-                "and architecture-reviewer subagents when that improves the analysis. Return a "
-                "synthesized final report."
-            ),
+            agent_instructions,
             workspace_instructions(workspace_root),
             analysis_output_instructions(),
         ]
@@ -165,16 +177,15 @@ def _validate_foundry_configuration() -> None:
         )
 
 
-def _build_agent() -> ClaudeAgent:
+def _build_agent(workspace_root: Path, optimizer_config: AgentOptimizerConfig) -> ClaudeAgent:
     effort_level = _resolve_effort_level()
-    workspace_root = ensure_workspace_root(PROJECT_ROOT)
     default_options = {
         "cwd": str(PROJECT_ROOT),
         "setting_sources": ["project"],
         "system_prompt": {
             "type": "preset",
             "preset": "claude_code",
-            "append": _build_system_prompt_append(workspace_root),
+            "append": _build_system_prompt_append(workspace_root, optimizer_config),
         },
         "allowed_tools": BUILTIN_TOOLS,
         "permission_mode": os.getenv("CLAUDE_PERMISSION_MODE", "dontAsk"),
@@ -199,9 +210,29 @@ async def main() -> None:
     load_dotenv(override=False)
     _configure_observability_environment()
     _configure_logging()
+    configure_agent_framework_observability(
+        agent_name=_resolve_foundry_agent_name(),
+        agent_version=_resolve_foundry_agent_version(),
+    )
     _validate_foundry_configuration()
+    optimizer_config = load_agent_optimizer_config(OPTIMIZER_CONFIG_DIR)
+    LOGGER.info(
+        "Agent optimizer config source=%s model=%s skills=%s enabled=%s",
+        optimizer_config.source,
+        optimizer_config.model or "<default>",
+        optimizer_config.skill_count,
+        optimizer_config.enabled,
+    )
 
-    agent = _build_agent()
+    workspace_root = ensure_workspace_root(PROJECT_ROOT)
+    agent = _build_agent(workspace_root, optimizer_config)
+    port = _resolve_port()
+    observability = create_observability(
+        agent_name=_resolve_foundry_agent_name(),
+        agent_version=_resolve_foundry_agent_version(),
+        workspace_root=workspace_root,
+    )
+    trace_server_startup(observability, agent_id=agent.id, port=port)
 
     LOGGER.info("Starting azure-resource-analyzer with agent id %s", agent.id)
     server = ResponsesHostServer(agent)

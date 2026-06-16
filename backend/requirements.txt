@@ -3,4 +3,7 @@ agent-framework-claude==1.0.0b260521
 agent-framework-foundry-hosting==1.0.0a260528
 claude-agent-sdk==0.1.48
 mcp>=1.25.0,<2
+azure-ai-agentserver-optimization
+azure-monitor-opentelemetry>=1.8.8,<2
+opentelemetry-api>=1.39.0,<2
 python-dotenv==1.2.2

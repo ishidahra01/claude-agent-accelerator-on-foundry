@@ -1,0 +1,21 @@
+rubric:
+  id: analysis-quality
+  description: Weighted quality rubric for Azure Well-Architected review responses.
+  dimensions:
+    - name: coverage
+      weight: 0.35
+      criteria: Major expected security, cost, and architecture signals are present.
+    - name: actionability
+      weight: 0.30
+      criteria: Findings include concrete remediation or recommendations that an Azure operator can act on.
+    - name: accuracy
+      weight: 0.25
+      criteria: Summary counts and resource totals are consistent with the inspected input and output arrays.
+    - name: prioritization
+      weight: 0.10
+      criteria: High-impact public exposure findings are assigned High or Critical severity.
+  foundry_mapping:
+    evaluator_name: builtin.rubric
+    status: public-preview
+    score_range: 0_to_1
+    notes: Use this local rubric as the source for Foundry Rubric evaluator criteria when creating cloud evals.

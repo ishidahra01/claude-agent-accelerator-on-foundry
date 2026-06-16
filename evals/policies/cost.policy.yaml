@@ -1,0 +1,35 @@
+policy:
+  id: cost-baseline
+  intent: Detect obvious cost optimization opportunities and require recommendations with savings estimates.
+  requirements:
+    - id: minimum-cost-findings
+      check: minimum-count
+      category: cost
+      minimum_from_expected: cost.min_count
+      must: The response should include at least the expected number of cost opportunities for the fixture.
+    - id: recommendation-required
+      check: require-non-empty
+      path: cost[].recommendation
+      must: Every cost finding must include a concrete recommendation.
+    - id: estimated-savings-required
+      check: require-non-empty
+      path: cost[].estimatedSavings
+      must: Every cost finding must include an estimated savings value or an explicit estimate range.
+    - id: dev-vm-detected
+      check: expected-keywords
+      category: cost
+      expected_key: cost.dev_vm
+      must: Oversized or always-on development VM spend should be called out.
+    - id: sql-capacity-detected
+      check: expected-keywords
+      category: cost
+      expected_key: cost.sql_capacity
+      must: SQL capacity should be reviewed for right-sizing.
+  generation:
+    scenarios_per_requirement: 3
+  scoring:
+    fail_on:
+      - minimum-cost-findings
+      - recommendation-required
+      - estimated-savings-required
+      - dev-vm-detected

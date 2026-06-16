@@ -1,0 +1,36 @@
+policy:
+  id: security-baseline
+  intent: Detect public exposure, weak transport settings, and administrative access risks with actionable remediation.
+  requirements:
+    - id: schema-valid
+      check: schema-valid
+      must: The response must preserve the stable Azure analysis output schema.
+    - id: remediation-required
+      check: require-non-empty
+      path: security[].remediation
+      must: Every security finding must include non-empty remediation.
+    - id: public-blob-detected
+      check: expected-keywords
+      category: security
+      expected_key: security.public_blob
+      must: Public blob access must be reported when the export enables public blob access.
+    - id: open-rdp-detected
+      check: expected-keywords
+      category: security
+      expected_key: security.open_rdp
+      must: Internet-exposed RDP must be reported when an NSG allows TCP 3389 from Internet.
+    - id: public-exposure-severity
+      check: severity-at-least
+      category: security
+      expected_key: security.public_blob
+      minimum: high
+      must: Public exposure findings should be prioritized as High or Critical.
+  generation:
+    scenarios_per_requirement: 5
+  scoring:
+    fail_on:
+      - schema-valid
+      - remediation-required
+      - public-blob-detected
+      - open-rdp-detected
+      - public-exposure-severity

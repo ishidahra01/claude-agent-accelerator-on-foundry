@@ -1,0 +1,31 @@
+policy:
+  id: waf-baseline
+  intent: Validate Well-Architected architecture findings for reliability and operational excellence.
+  requirements:
+    - id: minimum-architecture-findings
+      check: minimum-count
+      category: architecture
+      minimum_from_expected: architecture.min_count
+      must: The response should include architecture findings for the fixture.
+    - id: architecture-recommendation-required
+      check: require-non-empty
+      path: architecture[].recommendation
+      must: Every architecture finding must include a recommendation.
+    - id: zone-redundancy-detected
+      check: expected-keywords
+      category: architecture
+      expected_key: architecture.zone_redundancy
+      must: Missing zone redundancy should be reported for production database resources.
+    - id: diagnostics-detected
+      check: expected-keywords
+      category: architecture
+      expected_key: architecture.diagnostics
+      must: Empty diagnostic settings should be reported as an operational excellence issue.
+  generation:
+    scenarios_per_requirement: 3
+  scoring:
+    fail_on:
+      - minimum-architecture-findings
+      - architecture-recommendation-required
+      - zone-redundancy-detected
+      - diagnostics-detected

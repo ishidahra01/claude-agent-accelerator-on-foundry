@@ -7,6 +7,11 @@ dist/
 build/
 .foundry-agent.json
 .foundry-agent-build.log
+.agent_configs/
+.foundry/datasets/
+.foundry/evaluators/
+.foundry/results/
+.foundry/suites/
 .projects/
 
 # .NET build artifacts
@@ -18,4 +23,8 @@ obj/
 .azure
 infra
 backend/work/
+backend/.foundry/datasets/
+backend/.foundry/evaluators/
+backend/.foundry/results/
+backend/.foundry/suites/
 my-claude-agent0604/

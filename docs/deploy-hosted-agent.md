@@ -30,9 +30,15 @@ Make sure `azd` and the AI Agents extension are up to date, then sign in.
 ```powershell
 azd version
 azd ext list
+# If the extension is missing:
+# azd ext install azure.ai.agents
+# If the extension is older than the version needed by your workflow:
 azd ext upgrade azure.ai.agents
+azd ai agent optimize --help
 azd auth login
 ```
+
+For Agent Optimizer flows, use `azure.ai.agents` `0.1.40-preview` or later. If `azd ext list` shows an older version, upgrade the extension before running the B4 Optimize steps.
 
 ## 2. Initialize the Hosted Agent Project
 

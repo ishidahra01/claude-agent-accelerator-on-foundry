@@ -30,10 +30,13 @@ For production demos, keep the sample obviously labeled as a fixture, or move it
 Run these commands from the azd working directory created for the hosted agent, not from `backend/`.
 
 ```powershell
+# If missing: azd ext install azure.ai.agents
 azd ext upgrade azure.ai.agents
 azd auth login
 azd ai agent init -m ..\backend\agent.yaml
 ```
+
+For later Agent Optimizer testing, confirm `azure.ai.agents` is `0.1.40-preview` or later with `azd ext list`.
 
 Set or confirm runtime values in `.azure/<env-name>/.env`.
 

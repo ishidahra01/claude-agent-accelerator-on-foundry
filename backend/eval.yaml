@@ -1,0 +1,12 @@
+name: azure-waf-review-optimizer
+agent:
+  name: my-claude-agent
+  kind: hosted
+  version: "<deployed-agent-version>"
+  model: <existing-eval-model-deployment>
+  config: <relative-agent-root>/.claude/optimizer_configs/baseline/metadata.yaml
+dataset_file: <relative-repo-root>/evals/datasets/bad-config.queries.jsonl
+evaluators:
+  - builtin.task_adherence
+  - builtin.coherence
+  - builtin.violence
